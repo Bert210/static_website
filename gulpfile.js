@@ -1,14 +1,38 @@
-var gulp = require('gulp');
-var pug = require('gulp-pug');
-var sass = require('gulp-sass');
-// var minifyCSS = require('gulp-csso');
-// var concat = require('gulp-concat');
-// var sourcemaps = require('gulp-sourcemaps');
-var browserSync = require('browser-sync').create();
+const gulp = require('gulp');
+const pug = require('gulp-pug');
+const sass = require('gulp-sass');
+const minifyCSS = require('gulp-csso');
+const concat = require('gulp-concat');
+const uglify = require('gulp-uglify');
+const sourcemaps = require('gulp-sourcemaps');
+const browserSync = require('browser-sync').create();
+
+const inDevMode = process.env.NODE_ENV !== 'production';
+
+
+function center(str, length){
+  let strLen = str.length;
+  let start = Math.floor((length - strLen)/2);
+  return " ".repeat(start) + str + " ".repeat(start);
+}
+
+if(inDevMode){
+  console.log('\x1b[34m%s', '='.repeat(32));  
+  console.log(center("In Development Mode", 32));
+  console.log('%s\x1b[0m', '='.repeat(32));
+  
+}else{
+  console.log('\x1b[32m%s', '='.repeat(32));
+  console.log(center("In Production Mode", 32));
+  console.log('%s\x1b[0m', '='.repeat(32));
+  
+}
 
 gulp.task('html', function(){
   return gulp.src('src/pug/*.pug')
-    .pipe(pug())
+    .pipe(pug({
+      pretty: true
+    }))
     .pipe(gulp.dest('dist'))
     .pipe(browserSync.stream());
 });
@@ -16,21 +40,22 @@ gulp.task('html', function(){
 gulp.task('css', function(){
   return gulp.src('src/sass/*.scss')
     .pipe(sass())
-    // .pipe(minifyCSS())
+    .pipe(minifyCSS())
     .pipe(gulp.dest('dist/css'))
     .pipe(browserSync.stream());
 });
 
 gulp.task('js', function(){
   return gulp.src('src/js/*.js')
-    // .pipe(sourcemaps.init())
-    // .pipe(concat('app.min.js'))
-    // .pipe(sourcemaps.write())
+    .pipe(sourcemaps.init())
+    .pipe(concat('app.min.js'))
+    .pipe(uglify())
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('dist/js'))
     .pipe(browserSync.stream());
 });
 
-// Static Server + watching scss/html files
+// Static Server + watching html/scss/js files
 gulp.task('serve', ['html', 'css', 'js'], function() {
 
   browserSync.init({
@@ -40,10 +65,8 @@ gulp.task('serve', ['html', 'css', 'js'], function() {
   gulp.watch("src/js/**", ['js']);
   gulp.watch("src/sass/**", ['css']);
 
-  // gulp.watch(['node_modules/bootstrap/scss/bootstrap.scss', 'src/scss/*.scss'], ['sass']);
-  // gulp.watch(['src/assets/**/*'], ['copy']);
-  // gulp.watch("src/*.html").on('change', browserSync.reload);
-  // gulp.watch("src/*.html", ['html']);
 });
+
+gulp.task('build', ['html', 'css', 'js']);
 
 gulp.task('default', [ 'html', 'css', 'js' ]);

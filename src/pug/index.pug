@@ -1,5 +1,10 @@
-extends layout/layout.pug
+extends layout/master
+
+block head
+  title Home
 
 block content
-  .row
-    h1 Testing this out
+  - var name = "Home"
+  h1 #{name}
+
+  script(src="js/app.min.js")
